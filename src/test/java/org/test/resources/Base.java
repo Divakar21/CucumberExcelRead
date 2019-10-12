@@ -1,12 +1,23 @@
 package org.test.resources;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.Select;
-import org.test.steps.Hooks;
+import org.test.stepdefinition.Hooks;
 
 public class Base {
 	public static WebDriver driver;
@@ -35,13 +46,13 @@ public class Base {
 		   element.sendKeys(value);	 
 	}
 	
-	public static String getCurrentUrl() {
+	public static String readUrl() {
 		String url = driver.getCurrentUrl();
 		System.out.println(url);
 		return url;
 	}
 	
-	public static String getText(WebElement element) {
+	public static String readText(WebElement element) {
 		String value = element.getText();
 		System.out.println(value);
 		return value;
@@ -78,5 +89,37 @@ public class Base {
 	public static void quitBrowser() {
 			driver.quit();
 	}
-
+	public static List<HashMap<String,String>> readValuefromExcelSheet(){
+		List<HashMap<String,String>>mapDatasList = new ArrayList<HashMap<String,String>>();
+		try {
+			File excelLocation = new File("C:\\Users\\user\\Downloads\\eclipse\\Divakar\\CucumberFramework\\ExcelDatas\\UserDetails.xlsx");
+			String sheetName="Sheet1";
+			FileInputStream f = new FileInputStream(excelLocation);
+			Workbook w = new XSSFWorkbook(f);
+			Sheet sheet = w.getSheet(sheetName);
+			Row headerRow = sheet.getRow(0);
+			for(int i=0;i<sheet.getPhysicalNumberOfRows();i++) {
+				Row currentRow = sheet.getRow(i);
+				HashMap<String,String>mapDatas = new HashMap<String,String>();
+				for(int j=0;j<headerRow.getPhysicalNumberOfCells();j++) {
+					Cell currentCell = currentRow.getCell(j);
+					switch(currentCell.getCellType()) {
+					case Cell.CELL_TYPE_STRING:
+						mapDatas.put(headerRow.getCell(j).getStringCellValue(), currentCell.getStringCellValue());
+						break;
+					
+					case Cell.CELL_TYPE_NUMERIC:
+						double n = currentCell.getNumericCellValue();
+						long l = (long) n;
+						mapDatas.put(headerRow.getCell(j).getStringCellValue(), String.valueOf(l));
+						break;
+					}
+				}
+				mapDatasList.add(mapDatas);
+			}
+		}catch(Throwable e) {
+			e.printStackTrace();
+			}
+			return mapDatasList;
+		}
 }
